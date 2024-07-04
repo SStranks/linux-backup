@@ -83,7 +83,7 @@ do
       docker container stop $docker_container
       wait
       if [ -n "$docker_daemon" ]; then kill -9 $docker_daemon; echo "Process 1 terminated"; fi
-      exit
+      exit 1
     fi 
     echo "MongoDB not ready. Trying again in 2 seconds.."
     sleep 2
