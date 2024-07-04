@@ -2,13 +2,14 @@
 
 Automated scripts for backing up linux distro files and mongo databases from docker volumes
 
-## NOTE
+## IMPORTANT NOTE
 
 The scripts contain hardcoded usernames, paths, and details unique to my setup. This repo is for proof of concept, if you wish to run them you must adjust as required.
 
 ## Requirements
 
-Scripts presume that docker is installed, along with a mongo database within a docker volume.
+- Scripts presume that docker is installed, along with a mongo database within a docker volume.
+- Create .env file with MONGODB_USER and MONGODB_PASSWORD, to be consumed by the docker compose file for accessing the mongo database.
 
 ## Running the script
 
