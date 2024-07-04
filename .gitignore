@@ -1,0 +1,10 @@
+# Folders
+/Temp
+/node_modules
+
+# Env files
+**/.env
+**/.env.*
+
+# Private Files
+**/private.*
