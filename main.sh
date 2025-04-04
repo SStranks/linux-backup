@@ -56,7 +56,7 @@ done
 ### MONGODB BACKUP 
 
 # Switch to user where mongo and docker exist
-su -c "source /home/dev1/Workspace/Projects/Templates/Docker/mongo-backup/init.sh" - dev1
+su -c "source /home/dev1/Workspace/Projects/linux-backup/init.sh" - dev1
 mongodump_exitcode=$?
 if [[ mongodump_exitcode -ne 0 ]]
 then
@@ -66,13 +66,6 @@ then
 fi
 
 ### COPY FILES
-
-
-# Copy files: mongodb
-echo "Copying files of: mongodb"
-cp /tmp/mongodb.tgz ${linux_backup_dir}/mongodb/
-echo "Files copied to ${linux_backup_dir}/mongodb . Folder Size: $(du ${linux_backup_dir}/mongodb -sh | awk '{print $1}')"
-echo
 
 
 # Copy files of user: sstranks87
@@ -122,25 +115,25 @@ done
 
 pre_compression_folder_size=$(du $linux_backup_dir -sh | awk '{print $1}')
 
-echo "Compressing files: ${linux_backup_dir}/sstranks87
+echo "Compressing files: ${linux_backup_dir}/sstranks87"
 tar czf ${linux_backup_dir}/sstranks87.tgz -C ${linux_backup_dir}/sstranks87 .
 echo "Files compressed successfully" && echo
 
-echo "Compressing files: ${linux_backup_dir}/dev1
+echo "Compressing files: ${linux_backup_dir}/dev1"
 tar czf ${linux_backup_dir}/dev1.tgz -C ${linux_backup_dir}/dev1 .
 echo "Files compressed successfully" && echo
 
-echo "Compressing files: ${linux_backup_dir}/root
+echo "Compressing files: ${linux_backup_dir}/root"
 tar czf ${linux_backup_dir}/root.tgz -C ${linux_backup_dir}/root .
 echo "Files compressed successfully" && echo
 
-echo "Compressing files: ${linux_backup_dir}/etc
+echo "Compressing files: ${linux_backup_dir}/etc"
 tar czf ${linux_backup_dir}/etc.tgz -C ${linux_backup_dir}/etc .
 echo "Files compressed successfully" && echo
 
 echo "All files compressed successfully"
 echo "Pre-Compression size total: ${pre_compression_folder_size}"
-echo "Post-Compression size total: $(du ${linux_backup_dir}/sstranks87.tgz ${linux_backup_dir}/dev1.tgz ${linux_backup_dir}/root.tgz ${linux_backup_dir}/etc.tgz -ch | grep total | awk '{print $1}')
+echo "Post-Compression size total: $(du ${linux_backup_dir}/sstranks87.tgz ${linux_backup_dir}/dev1.tgz ${linux_backup_dir}/root.tgz ${linux_backup_dir}/etc.tgz -ch | grep total | awk '{print $1}')"
 
 
 ### ENCRYPT FILES WITH GPG
@@ -200,13 +193,13 @@ echo "Drive mounted successfully"
 
 ## Confirm windows directory to hold backup files
 while true; do
-read -e -p "Please enter windows directory where backup folder will be created: " -i "/Linux/Backups" windows_dir
-windows_backup_dir="${windows_dir}/$(date +%F)"
+read -e -p "Please enter windows directory where backup folder will be created: " -i "/Backups/Linux" windows_dir
+windows_backup_dir="${windows_dir}/$(date '+%Y_%m_%d')"
 read -p "Backup folder: ${drive_letter^}:${windows_backup_dir} .Continue? (Y/N/Exit): " confirm
 confirm=${confirm,,}
 
 case $confirm in 
-	yes | y) echo "Proceeding" && echo && mkdir /mnt/${driver_letter}/$windows_backup_dir && echo "Folder created: /mnt/${driver_letter}/$windows_backup_dir";
+	yes | y) echo "Proceeding" && echo && mkdir /mnt/${drive_letter}/${windows_backup_dir} && echo "Folder created: /mnt/${driver_letter}/${windows_backup_dir}";
 		break;;
 	no | n) continue;;
 	exit | e) echo "Exiting procedure";
@@ -222,7 +215,7 @@ done
 while true; do
 echo "Initiating transfer of encrypted tarballs"
 echo "Files will be transferred from: ${linux_backup_dir}"
-echo "Files will be transferred to: /mnt/${driver_letter}/$windows_backup_dir"
+echo "Files will be transferred to: /mnt/${drive_letter}/${windows_backup_dir}"
 read -e -p "Proceed with file transfer? (Y/Exit)" -i "y" question_transfer
 question_transfer=${question_transfer,,}
 
@@ -238,7 +231,7 @@ esac
 done
 
 echo "Transferring files"
-rsync -a ${linux_backup_dir}/mongodb.tgz.gpg ${linux_backup_dir}/sstranks87.tgz.gpg ${linux_backup_dir}/dev1.tgz.gpg ${linux_backup_dir}/root.tgz.gpg ${linux_backup_dir}/etc.tgz.gpg /mnt/${driver_letter}/$windows_backup_dir/
+rsync -a ${linux_backup_dir}/mongodb.tgz.gpg ${linux_backup_dir}/sstranks87.tgz.gpg ${linux_backup_dir}/dev1.tgz.gpg ${linux_backup_dir}/root.tgz.gpg ${linux_backup_dir}/etc.tgz.gpg /mnt/${drive_letter}/${windows_backup_dir}/
 echo "Transfer successful"
 echo
 

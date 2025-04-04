@@ -21,6 +21,8 @@
 #
 # NOTE_1: "echo 'db.runCommand(\"ping\").ok' | mongosh --quiet" - this produced mongosh prompt itself, not just stdout
 #
+# return 1 2> /dev/null || exit 1 <-- this passes error up to calling script, or exits, depending on how script is invoked.
+#
 #### NOTES ####
 
 
@@ -29,6 +31,7 @@
 #########################
 
 docker_container=backup-mongo-db
+docker_compose_yml=/home/dev1/Workspace/Projects/linux-backup/docker-compose.yml
 
 # Initialize Docker Daemon (Rootless) if not already active
 if ! curl -s --unix-socket /home/dev1/.docker/run/docker.sock http/_ping 2>&1 >/dev/null
@@ -47,7 +50,10 @@ do
   else
     if [ $i -eq 5 ] 
     then echo "Error: Daemon not active"
-      if [ -n "$docker_daemon" ]; then kill -9 $docker_daemon; echo "Process 1 terminated"; exit; fi
+      if [ -n "$docker_daemon" ]; then kill -9 $docker_daemon; 
+      echo "Process 1 terminated"; 
+      return 1 2> /dev/null || exit 1
+      fi
     fi
     echo "Docker Daemon is Not Running"
     sleep 1
@@ -65,7 +71,9 @@ then
   then echo "Container is already running";
   else echo "Container is not running. Starting"; docker container start $docker_container
   fi
-else echo "Container $docker_container does not exist. Starting compose file"; docker compose up --detach
+else 
+  echo "Container $docker_container does not exist. Starting compose file"; 
+  docker compose -f $docker_compose_yml up -d
 fi
 
 
@@ -83,7 +91,7 @@ do
       docker container stop $docker_container
       wait
       if [ -n "$docker_daemon" ]; then kill -9 $docker_daemon; echo "Process 1 terminated"; fi
-      exit 1
+      return 1 2> /dev/null || exit 1
     fi 
     echo "MongoDB not ready. Trying again in 2 seconds.."
     sleep 2
@@ -103,4 +111,4 @@ docker container stop $docker_container
 wait $!
 kill -9 $docker_daemon
 wait $!
-exit 0
+return 0 2> /dev/null || exit 0

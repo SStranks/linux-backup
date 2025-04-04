@@ -1,11 +1,10 @@
-name: "mongodb-backup"
-version: "3.7"
+name: 'mongodb-backup'
+version: '3.7'
 services:
-
   # DB: MongoDB
   mongo-db:
     container_name: backup-mongo-db
-    image: mongo:6.0.6
+    image: mongo:7.0.4
     restart: no
     environment:
       - MONGODB_USER=$MONGODB_USER
