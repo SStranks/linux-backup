@@ -4,6 +4,7 @@
 ![Shell](https://img.shields.io/badge/language-shell-blue)
 ![WSL2](https://img.shields.io/badge/Platform-WSL2-blueviolet)
 ![Last Commit](https://img.shields.io/github/last-commit/SStranks/linux-backup)
+[![CodeQL](https://github.com/SStranks/linux-backup/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/SStranks/linux-backup/actions/workflows/github-code-scanning/codeql)
 ![Lint](https://github.com/SStranks/linux-backup/actions/workflows/lint.yaml/badge.svg)
 
 Automated scripts for backing up linux distro files and mongo databases from docker volumes
