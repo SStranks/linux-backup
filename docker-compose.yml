@@ -1,34 +1,31 @@
-name: 'mongodb-backup'
+name: 'mongo-backup'
 version: '3.7'
 services:
   # DB: MongoDB
-  mongo-db:
-    container_name: backup-mongo-db
-    image: mongo:7.0.4
+  mongo:
+    container_name: ${MONGO_CONTAINER}
+    image: mongo:8.0.10
     restart: no
-    environment:
-      - MONGODB_USER=$MONGODB_USER
-      - MONGODB_PASSWORD=$MONGODB_PASSWORD
+    env_file:
+      - ./.env
     ports:
       - $MONGODB_LOCAL_PORT:$MONGODB_DOCKER_PORT
     volumes:
-      - ./mongodump.sh:/tmp/mongodump.sh
+      - ./mongodump.sh:/tmp/mongodump.sh:ro
       - mongodb-data:/data/db
-    # // NOTE:  using entrypoint script would supercede mongodb init scripts
-    # entrypoint: [ "/bin/sh", "/tmp/mongodump.sh" ]
     security_opt:
       - no-new-privileges
     secrets:
-      - MONGODB_USER
-      - MONGODB_PASSWORD
+      - mongo_user_service
+      - mongo_password_service
 
 volumes:
-  mongodb-data:
-    name: mongodb-data
+  mongo-data:
+    name: mongo-data
     external: true
 
 secrets:
-  MONGODB_USER:
-    file: ./.env
-  MONGODB_PASSWORD:
-    file: ./.env
+  mongo_user_service:
+    file: ${SECRET_PATH}/.secret.mongo_user_service.txt
+  mongo_password_service:
+    file: ${SECRET_PATH}/.secret.mongo_password_service.txt
