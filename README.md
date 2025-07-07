@@ -8,7 +8,7 @@
 
 Automated scripts for backing up linux distro files and mongo databases from docker volumes
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Features](#features)
 - [Requirements](#requirements)

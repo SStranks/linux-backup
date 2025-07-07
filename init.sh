@@ -26,10 +26,6 @@ set -euo pipefail
 #--- PROCEDURE START ---#
 #########################
 
-# Set env variables
-[[ -f ./.env ]] || { echo "Missing .env file"; exit 1; }
-set -a && source ./.env && set +a
-
 SECRETS_SCRIPT="./secrets.sh"
 DOCKER_CONTAINER_MONGO=$MONGO_CONTAINER
 DOCKER_COMPOSE_YML="/home/$USER/Workspace/Projects/linux-backup/docker-compose.yml"
@@ -40,13 +36,14 @@ log() {
     local message="$2"
     local script_name
     script_name="$(basename "$0")"
-    local timestamp=$(date +%F_%H-%M-%S)
+    local timestamp
+    timestamp=$(date +%F_%H-%M-%S)
     echo "$timestamp [$log_level] [$script_name] $message" | tee -a "$LOG_FILE"
 }
 
 cleanup() {
   local exit_code="$1"
-  if [ $exit_code -ne 0 ]; then
+  if [ "$exit_code" -ne 0 ]; then
     # BASH_LINENO[0] is the line number where cleanup was called,
     # BASH_LINENO[1] is the line number where the function/script exited
     local line=${BASH_LINENO[0]}
@@ -64,6 +61,18 @@ cleanup() {
 }
 trap 'exit_code=$?; cleanup $exit_code' EXIT
 
+
+
+# Set env variables
+if [[ -f ./.env ]]; then
+  set -a && source ./.env && set +a
+else
+  log "ERROR" "Missing .env file"
+  exit 1
+fi
+
+
+
 # Export decrypted secrets to individual secret files
 if [[ -x "$SECRETS_SCRIPT" ]]; then
   log "INFO" "Running secrets script: $SECRETS_SCRIPT"
@@ -72,6 +81,8 @@ else
   log "ERROR" "Secrets script not found or not executable: $SECRETS_SCRIPT"
   exit 1
 fi
+
+
 
 # Get Docker rootless socket
 if [[ -n "${XDG_RUNTIME_DIR:-}" && -S "$XDG_RUNTIME_DIR/docker.sock" ]]; then
@@ -87,7 +98,7 @@ fi
 
 
 # Initialize Docker Daemon (rootless) if not already active
-if ! curl -s --unix-socket "$DOCKER_ROOTLESS_SOCKET" http://localhost/_ping 2>&1 >/dev/null; then
+if ! curl -s --unix-socket "$DOCKER_ROOTLESS_SOCKET" http://localhost/_ping >/dev/null 2>&1; then
   if systemctl --user is-active --quiet docker; then
     log "INFO" "Docker socket exists but not responsive; restarting.."
     systemctl --user restart docker
@@ -106,7 +117,7 @@ fi
 for i in {1..5}
 do
   # Daemon returns OK or null
-  if curl -s --unix-socket "$DOCKER_ROOTLESS_SOCKET" http://localhost/_ping 2>&1 >/dev/null; then
+  if curl -s --unix-socket "$DOCKER_ROOTLESS_SOCKET" http://localhost/_ping >/dev/null 2>&1; then
     log "INFO" "Docker Rootless Daemon: Active"
     break
   else

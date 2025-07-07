@@ -65,7 +65,7 @@ fi
 
 # Backup mongo database; user confirmation
 while true; do
-  read -e -p "Do you want to back up the MongoDB database? (Y/N): " -i "y" backup_mongo
+  read -er -p "Do you want to back up the MongoDB database? (Y/N): " -i "y" backup_mongo
   backup_mongo=${backup_mongo,,}
 
   case "$backup_mongo" in
@@ -78,7 +78,7 @@ while true; do
       for user in "${available_users[@]}"; do echo "- $user"; done
 
       while true; do
-        read -e -p "Enter username to run init.sh (Docker + Mongo access): " selected_user
+        read -er -p "Enter username to run init.sh (Docker + Mongo access): " selected_user
         if [[ " ${available_users[*]} " == *" $selected_user "* ]]; then
           log "INFO" "Running MongoDB backup via init.sh as user: $selected_user"
           su -c "source /home/$selected_user/Workspace/Projects/linux-backup/init.sh" - "$selected_user"
@@ -106,15 +106,15 @@ while true; do
 done
 
 # Select users to back up
-available_users=($(ls /home))
+mapfile -t available_users < <(ls /home)
 log "INFO" "Available users: ${available_users[*]}"
 
 selected_users=()
 while true; do
-  read -e -p "Enter a username to back up (or type 'done' to finish): " username
+  read -er -p "Enter a username to back up (or type 'done' to finish): " username
   if [[ "$username" == "done" ]]; then
     break
-  elif [[ " ${available_users[*]} " =~ " $username " ]]; then
+  elif [[ " ${available_users[*]} " =~ $username ]]; then
     selected_users+=("$username")
   else
     echo "Invalid username. Available users: ${available_users[*]}"
@@ -128,7 +128,7 @@ fi
 
 # Linux root folder to hold backup files; user confirmation
 while true; do
-	read -e -p "Please enter linux directory where backup folder will be created: " -i "/tmp" linux_dir
+	read -er -p "Please enter linux directory where backup folder will be created: " -i "/tmp" linux_dir
 	linux_backup_dir="${linux_dir}/$(date +%F)-backup"
 	read -p "Backup folder: ${linux_backup_dir} .Continue? (Y/N/Exit): " confirm
 	confirm=${confirm,,}
@@ -168,7 +168,7 @@ fi
 
 # Compress files to tar archive; user confirmation
 while true; do
-	read -e -p "Proceed with Tarball compression?: (Y/Exit)" -i "y" question_compression
+	read -er -p "Proceed with Tarball compression?: (Y/Exit)" -i "y" question_compression
 	question_compression=${question_compression,,}
 
 	case $question_compression in 
@@ -207,7 +207,7 @@ log "INFO" "Post-Compression size total: $(du ${linux_backup_dir}/sstranks87.tgz
 
 # Encrypt tar archives; user confirmation
 while true; do
-	read -e -p "Proceed with Tarball encryption(Y/Exit)" -i "y" question_encryption
+	read -er -p "Proceed with Tarball encryption(Y/Exit)" -i "y" question_encryption
 	question_encryption=${question_encryption,,}
 
 	case $question_encryption in 
@@ -240,7 +240,7 @@ log "INFO" "Encrypting tar archives with gpg: Completed"
 
 # Mount windows drive; user confirmation
 while true; do
-	read -e -p "Windows Drive letter to mount: " -i "D" drive_letter
+	read -er -p "Windows Drive letter to mount: " -i "D" drive_letter
 	drive_letter=${drive_letter,,}
 
 	if [[ $drive_letter == [a-z] ]]; then 
@@ -272,7 +272,7 @@ log "INFO" "Mounting /mnt/${drive_letter}: Completed"
 
 # Confirm windows directory to hold backup files
 while true; do
-	read -e -p "Please enter windows directory where backup folder will be created: " -i "/Backups/Linux" windows_dir
+	read -er -p "Please enter windows directory where backup folder will be created: " -i "/Backups/Linux" windows_dir
 	windows_backup_dir="${windows_dir}/$(date '+%Y_%m_%d')"
 	read -p "Backup folder: ${drive_letter^}:${windows_backup_dir} .Continue? (Y/N/Exit): " confirm
 	confirm=${confirm,,}
@@ -295,7 +295,7 @@ while true; do
 	log "INFO" "Transfer of encrypted tar archives"
 	log "INFO" "Files will be transferred from: ${linux_backup_dir}"
 	log "INFO" "Files will be transferred to: /mnt/${drive_letter}/${windows_backup_dir}"
-	read -e -p "Proceed with file transfer? (Y/Exit)" -i "y" question_transfer
+	read -er -p "Proceed with file transfer? (Y/Exit)" -i "y" question_transfer
 	question_transfer=${question_transfer,,}
 
 	case $question_transfer in 
