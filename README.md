@@ -1,8 +1,10 @@
+# WSL2 Backup
+
 ![Repository Banner](repo_banner.jpg)
 ![Shell](https://img.shields.io/badge/language-shell-blue)
 ![WSL2](https://img.shields.io/badge/Platform-WSL2-blueviolet)
 ![Last Commit](https://img.shields.io/github/last-commit/SStranks/linux-backup)
-![Lint](https://github.com/SStranks/linux-backup/actions/workflows/lint.yml/badge.svg)
+![Lint](https://github.com/SStranks/linux-backup/actions/workflows/lint.yaml/badge.svg)
 
 Automated scripts for backing up linux distro files and mongo databases from docker volumes
 
@@ -18,7 +20,7 @@ Automated scripts for backing up linux distro files and mongo databases from doc
 
 ---
 
-## ✅ Features
+## Features
 
 - Automated backup of:
   - MongoDB databases in Docker volumes
@@ -31,7 +33,7 @@ Automated scripts for backing up linux distro files and mongo databases from doc
 
 ---
 
-## 🔧 Requirements
+## Requirements
 
 - Linux (tested under WSL2)
 - Docker (rootless) installed and running
@@ -41,7 +43,7 @@ Automated scripts for backing up linux distro files and mongo databases from doc
 
 ---
 
-## ⚙️ Setup
+## Setup
 
 1. Clone the repository.
 2. Create a `.env` file at the root with the following contents:
@@ -69,11 +71,11 @@ Automated scripts for backing up linux distro files and mongo databases from doc
 
 4. Encrypt the .secret.yaml file in-place using SOPS.
 
-   ```
+   ```bash
    `sops -p <SUB_KEY_FINGERPRINT[E]> -d -i --input-type yaml ./.secret.yaml`
    ```
 
-## 📝 Usage
+## Usage
 
 Run the main script as root from the project root directory:
 
@@ -84,7 +86,7 @@ Running as root is required to access protected directories like /etc and /root.
 
 NOTE: If you do not wish to backup root files the script can be run under normal privileges.
 
-## 🔄 Backup Process Overview
+## Backup Process Overview
 
 Backup location defaults to /tmp (ephemeral on reboot).
 
@@ -116,10 +118,10 @@ Compresses and encrypts all backup subfolders with GPG (AES256 cipher).
 
 Mounts an external drive, copies encrypted backups, then unmounts the drive.
 
-## ⚠️ Limitations
+## Limitations
 
 External drive mounting is static and may not suit all environments.
 
-## 📝 License
+## License
 
 MIT License — feel free to use and modify.
