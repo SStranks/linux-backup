@@ -74,7 +74,7 @@ Automated scripts for backing up linux distro files and mongo databases from doc
 4. Encrypt the .secret.yaml file in-place using SOPS.
 
    ```bash
-   `sops -p <SUB_KEY_FINGERPRINT[E]> -d -i --input-type yaml ./.secret.yaml`
+   sops -p <SUB_KEY_FINGERPRINT[E]> -e -i --input-type yaml ./.secret.yaml
    ```
 
 ## Usage
@@ -83,42 +83,26 @@ Run the main script as root from the project root directory:
 
 ```bash
 sudo ./main.sh
-Running as root is required to access protected directories like /etc and /root.
 ```
 
-NOTE: If you do not wish to backup root files the script can be run under normal privileges.
+Running as root is required to access protected directories like /etc and /root. If you do not wish to backup root files the script can be run without sudo and will be automatically detected.
 
 ## Backup Process Overview
 
-Backup location defaults to /tmp (ephemeral on reboot).
-
-Initializes init.sh as the user that owns the Docker and Mongo volume.
-
-Performs the following:
-
-Decrypts local secret file and creates individual docker secret files.
-
-Starts a rootless Docker daemon if not running.
-
-Starts MongoDB container if not running.
-
-Waits for MongoDB container to be healthy.
-
-Runs mongodump.sh inside container to dump the DB.
-
-Compresses Mongo dump to .tar.gz.
-
-Copies DB dump to backup folder.
-
-Uses rsync to copy:
-
-User files (excluding heavy folders like .git, node_modules, etc.)
-
-/etc and /root folders
-
-Compresses and encrypts all backup subfolders with GPG (AES256 cipher).
-
-Mounts an external drive, copies encrypted backups, then unmounts the drive.
+- Backup location defaults to `/tmp` (ephemeral on reboot).
+- Initializes `init.sh` as the user that owns the Docker and Mongo volume.
+- Decrypts local secret file and creates individual Docker secret files.
+- Starts a rootless Docker daemon if not running.
+- Starts MongoDB container if not running.
+- Waits for MongoDB container to be healthy.
+- Runs `mongodump.sh` inside container to dump the DB.
+- Compresses Mongo dump to `.tar.gz`.
+- Copies DB dump to backup folder.
+- Uses `rsync` to copy:
+  - User files (excluding heavy folders like `.git`, `node_modules`, etc.)
+  - `/etc` and `/root` folders
+- Compresses and encrypts all backup subfolders with GPG (AES256 cipher).
+- Mounts an external drive, copies encrypted backups, then unmounts the drive.
 
 ## Limitations
 
