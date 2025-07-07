@@ -38,7 +38,8 @@ log() {
     local message="$2"
     local script_name
     script_name="$(basename "$0")"
-    local timestamp=$(date +%F_%H-%M-%S)
+    local timestamp
+    timestamp=$(date +%F_%H-%M-%S)
     echo "$timestamp [$log_level] [$script_name] $message" | tee -a "$LOG_FILE"
 }
 
@@ -74,7 +75,7 @@ while true; do
 
       # List users to choose the one with Docker + Mongo access
       log "INFO" "Available users on system:"
-      available_users=($(awk -F: '($3 >= 1000) && ($7 !~ /nologin/) { print $1 }' /etc/passwd))
+      mapfile -t available_users < <(awk -F: '($3 >= 1000) && ($7 !~ /nologin/) { print $1 }' /etc/passwd)
       for user in "${available_users[@]}"; do echo "- $user"; done
 
       while true; do
