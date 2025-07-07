@@ -43,7 +43,8 @@ log() {
     local message="$2"
     local script_name
     script_name="$(basename "$0")"
-    local timestamp=$(date +%F_%H-%M-%S)
+    local timestamp
+    timestamp=$(date +%F_%H-%M-%S)
     echo "$timestamp [$log_level] [$script_name] $message" | tee -a "$LOG_FILE"
 }
 
