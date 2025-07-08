@@ -64,7 +64,7 @@ Automated scripts for backing up linux distro files and mongo databases from doc
 
    NOTE: If you wish to manage your own secrets, you can amend the docker-compose.yml top-level secrets to point to your individual secret files.
 
-   Create a `.secret.yml` file at the root with the following contents:
+   Create a `.secret.yaml` file at the root with the following contents:
 
    ```yaml
    mongo_user_service: your_mongo_username

@@ -133,8 +133,7 @@ done
 
 
 # Check if container exists
-docker container inspect "$DOCKER_CONTAINER_MONGO" > /dev/null 2>&1
-if [[ $? -eq 0 ]]; then
+if docker container inspect "$DOCKER_CONTAINER_MONGO" > /dev/null 2>&1; then
   log "INFO" "Container $DOCKER_CONTAINER_MONGO: exists"
   # Check if container is running
   if [[ $(docker container inspect -f '{{.State.Running}}' "$DOCKER_CONTAINER_MONGO") == "false" ]]; then  

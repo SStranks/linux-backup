@@ -59,7 +59,7 @@ log "INFO" "WSL2 Linux Backup Script: Starting.."
 # Determine if running as root
 is_root="true"
 if [[ $EUID -ne 0 ]]; then
-  log "WARN" "Not running as root. System directories will be skipped."
+  log "WARN" "Not running as root. System directories will be skipped"
   is_root="false"
 fi
 
@@ -131,17 +131,24 @@ fi
 while true; do
 	read -er -p "Please enter linux directory where backup folder will be created: " -i "/tmp" linux_dir
 	linux_backup_dir="${linux_dir}/$(date +%F)-backup"
-	read -p "Backup folder: ${linux_backup_dir} .Continue? (Y/N/Exit): " confirm
+	read -er -p "Backup folder: ${linux_backup_dir} .Continue? (Y/N/Exit): " -i "y" confirm
 	confirm=${confirm,,}
 
-	case $confirm in 
-		yes | y) echo "Proceeding" && echo && mkdir -p $linux_backup_dir && echo "Folder created: ${linux_backup_dir}";
-			break;;
-		no | n) continue;;
-		exit | e) echo "Exiting procedure";
-			exit;;
-		*) echo "Invalid Option. Enter Y/N/Exit";
-			continue;;
+	case "$confirm" in 
+		yes | y) 
+      echo "Proceeding" && echo && mkdir -p "$linux_backup_dir" && echo "Folder created: ${linux_backup_dir}"
+			break
+      ;;
+		no | n) 
+      continue
+      ;;
+		exit | e)
+      echo "Exiting procedure"
+			exit 0
+      ;;
+		*) 
+      echo "Invalid Option. Enter Y/N/Exit"
+			;;
 	esac
 done
 
@@ -151,18 +158,18 @@ done
 for user in "${selected_users[@]}"; do
   log "INFO" "Copying files of user: $user"
   rsync -ar --exclude={/.nvm,/.vscode-remote-containers,/.docker,/.npm,/.cache,/.config,/bin,/.local,/.vscode-server,/.vscode-oss-dev,/.console-ninja,**/node_modules,**/.git,**/dist} "/home/$user/" "${linux_backup_dir}/${user}/"
-  log "INFO" "Files copied to ${linux_backup_dir}/${user} . Folder Size: $(du ${linux_backup_dir}/${user} -sh | awk '{print $1}')"
+  log "INFO" "Files copied to ${linux_backup_dir}/${user} . Folder Size: $(du "${linux_backup_dir}/${user}" -sh | awk '{print $1}')"
 done
 
 # Copy root files if root
 if [[ "$is_root" == true ]]; then
     log "INFO" "Copying files of /etc"
-  rsync -ar /etc/ ${linux_backup_dir}/etc/
-  log "INFO" "Files copied to ${linux_backup_dir}/etc . Folder Size: $(du ${linux_backup_dir}/etc -sh | awk '{print $1}')"
+  rsync -ar /etc/ "${linux_backup_dir}/etc/"
+  log "INFO" "Files copied to ${linux_backup_dir}/etc . Folder Size: $(du "${linux_backup_dir}/etc" -sh | awk '{print $1}')"
 
   log "INFO" "Copying files of /root"
-  rsync -ar /root/ ${linux_backup_dir}/root/
-  log "INFO" "Files copied to ${linux_backup_dir}/root . Folder Size: $(du ${linux_backup_dir}/root -sh | awk '{print $1}')"
+  rsync -ar /root/ "${linux_backup_dir}"/root/
+  log "INFO" "Files copied to ${linux_backup_dir}/root . Folder Size: $(du "${linux_backup_dir}/root" -sh | awk '{print $1}')"
 fi
 
 
@@ -173,17 +180,22 @@ while true; do
 	question_compression=${question_compression,,}
 
 	case $question_compression in 
-		yes | y) echo "Proceeding with compression" && echo;
-			break;;
-		exit | e) echo "Exiting procedure";
-			exit;;
-		*) echo "Invalid Option. Enter Y/Exit";
-			continue;;
+		yes | y) 
+      echo "Proceeding with compression" && echo
+			break
+      ;;
+		exit | e) 
+      echo "Exiting procedure"
+			exit 0
+      ;;
+		*) 
+      echo "Invalid Option. Enter Y/Exit"
+			;;
 	esac
 done
 
 # Compress files to tar archive
-pre_compression_folder_size=$(du $linux_backup_dir -sh | awk '{print $1}')
+pre_compression_folder_size=$(du "$linux_backup_dir" -sh | awk '{print $1}')
 
 for user in "${selected_users[@]}"; do
   log "INFO" "Compressing files: ${linux_backup_dir}/${user}: Begin"
@@ -202,7 +214,7 @@ fi
 
 log "INFO" "All files compressed successfully"
 log "INFO" "Pre-Compression size total: ${pre_compression_folder_size}"
-log "INFO" "Post-Compression size total: $(du ${linux_backup_dir}/sstranks87.tgz ${linux_backup_dir}/dev1.tgz ${linux_backup_dir}/root.tgz ${linux_backup_dir}/etc.tgz -ch | grep total | awk '{print $1}')"
+log "INFO" "Post-Compression size total: $(du "${linux_backup_dir}"/sstranks87.tgz "${linux_backup_dir}"/dev1.tgz "${linux_backup_dir}"/root.tgz "${linux_backup_dir}"/etc.tgz -ch | grep total | awk '{print $1}')"
 
 
 
@@ -212,12 +224,17 @@ while true; do
 	question_encryption=${question_encryption,,}
 
 	case $question_encryption in 
-		yes | y) echo "Proceeding with encryption" && echo;
-			break;;
-		exit | e) echo "Exiting procedure";
-			exit;;
-		*) echo "Invalid Option. Enter Y/Exit";
-			continue;;
+		yes | y) 
+      echo "Proceeding with encryption" && echo
+			break
+      ;;
+		exit | e) 
+      echo "Exiting procedure"
+			exit 0
+      ;;
+		*) 
+      echo "Invalid Option. Enter Y/Exit";
+			;;
 	esac
 done
 
@@ -251,23 +268,34 @@ while true; do
 	fi
 done
 
-while true; do
-	read -p "Mount ${drive_letter^}: to /mnt/${drive_letter} .Continue? (Y/N/Exit): " question_mount_confirm
+if mountpoint -q "/mnt/${drive_letter}"; then
+  log "INFO" "/mnt/${drive_letter} is already mounted"
+else
+  # Mount windows drive; user confirmation
+  while true; do
+    read -er -p "Mount ${drive_letter^}: to /mnt/${drive_letter} .Continue? (Y/N/Exit): " -i "y" confirm
 
-	case $question_mount_confirm in 
-		yes | y) echo "Proceeding to mount drive" && echo;
-			break;;
-		exit | e) echo "Exiting procedure";
-			exit;;
-		*) echo "Invalid Option. Enter Y/Exit";
-			continue;;
-	esac
-done
+    case $confirm in 
+      yes | y) 
+        echo "Proceeding to mount drive" && echo
+        break
+        ;;
+      exit | e) 
+        echo "Exiting procedure"
+        exit 0
+        ;;
+      *) 
+        echo "Invalid Option. Enter Y/Exit"
+        ;;
+    esac
+  done
 
-# Mount windows drive
-log "INFO" "Mounting /mnt/${drive_letter}: Begin"
-mount -t drvfs ${drive_letter^}: /mnt/${drive_letter}
-log "INFO" "Mounting /mnt/${drive_letter}: Completed"
+  # Mount windows drive
+  log "INFO" "Mounting /mnt/${drive_letter}: Begin"
+  mkdir -p /mnt/"${drive_letter}"
+  mount -t drvfs "${drive_letter^}: /mnt/${drive_letter}"
+  log "INFO" "Mounting /mnt/${drive_letter}: Completed"
+fi
 
 
 
@@ -275,17 +303,24 @@ log "INFO" "Mounting /mnt/${drive_letter}: Completed"
 while true; do
 	read -er -p "Please enter windows directory where backup folder will be created: " -i "/Backups/Linux" windows_dir
 	windows_backup_dir="${windows_dir}/$(date '+%Y_%m_%d')"
-	read -p "Backup folder: ${drive_letter^}:${windows_backup_dir} .Continue? (Y/N/Exit): " confirm
+	read -er -p "Backup folder: ${drive_letter^}:${windows_backup_dir} .Continue? (Y/N/Exit): " -i "y" confirm
 	confirm=${confirm,,}
 
-	case $confirm in 
-		yes | y) echo "Proceeding" && echo && mkdir -p /mnt/${drive_letter}/${windows_backup_dir} && echo "Folder created: /mnt/${drive_letter}/${windows_backup_dir}";
-			break;;
-		no | n) continue;;
-		exit | e) echo "Exiting procedure";
-			exit;;
-		*) echo "Invalid Option. Enter Y/N/Exit";
-			continue;;
+	case "$confirm" in 
+		yes | y) 
+      echo "Proceeding" && echo && mkdir -p /mnt/"${drive_letter}"/"${windows_backup_dir}" && echo "Folder created: /mnt/${drive_letter}/${windows_backup_dir}"
+			break
+      ;;
+		no | n) 
+      continue
+      ;;
+		exit | e) 
+      echo "Exiting procedure"
+			exit 0
+      ;;
+		*) 
+      echo "Invalid Option. Enter Y/N/Exit"
+			;;
 	esac
 done
 
@@ -300,27 +335,58 @@ while true; do
 	question_transfer=${question_transfer,,}
 
 	case $question_transfer in 
-		yes | y) echo "Proceeding with file transfer" && echo;
-			break;;
-		exit | e) echo "Exiting procedure";
-			exit;;
-		*) echo "Invalid Option. Enter Y/Exit";
-			continue;;
+		yes | y) 
+      echo "Proceeding with file transfer" && echo
+			break
+      ;;
+		exit | e) 
+      echo "Exiting procedure"
+			exit 0
+      ;;
+		*) 
+      echo "Invalid Option. Enter Y/Exit";
+			;;
 
 	esac
 done
 
 # Transfer encrypted archives to windows system
 log "INFO" "Transferring files to /mnt/${drive_letter}/${windows_backup_dir}: Begin"
-rsync -a ${linux_backup_dir}/mongodb.tgz.gpg ${linux_backup_dir}/sstranks87.tgz.gpg ${linux_backup_dir}/dev1.tgz.gpg ${linux_backup_dir}/root.tgz.gpg ${linux_backup_dir}/etc.tgz.gpg /mnt/${drive_letter}/${windows_backup_dir}/
+rsync -a "${linux_backup_dir}"/mongodb.tgz.gpg "${linux_backup_dir}"/sstranks87.tgz.gpg "${linux_backup_dir}"/dev1.tgz.gpg "${linux_backup_dir}"/root.tgz.gpg "${linux_backup_dir}"/etc.tgz.gpg /mnt/"${drive_letter}"/"${windows_backup_dir}"/
 log "INFO" "Transferring files /mnt/${drive_letter}/${windows_backup_dir}: Completed"
 
 
 
-# Unmount windows drive
-log "INFO" "Unmounting /mnt/${drive_letter}: Begin"
-umount /mnt/${drive_letter}
-log "INFO" "Unmounting /mnt/${drive_letter}: Completed"
+# If root unmount drive; user confirmation
+if [[ "$is_root" == true ]]; then
+  while true; do
+    read -er -p "Do you wish to unmount /mnt/${drive_letter}? (Y/N/Exit): " -i "y" confirm
+    confirm=${confirm,,}
+
+    case "$confirm" in 
+      yes | y) 
+        # Unmount windows drive
+        log "INFO" "Unmounting /mnt/${drive_letter}: Begin"
+        umount /mnt/"${drive_letter}" || { 
+          log "ERROR" "Failed to unmount /mnt/${drive_letter}" 
+          exit 1 
+        }
+        log "INFO" "Unmounting /mnt/${drive_letter}: Completed"
+        break
+        ;;
+      no | n) 
+        continue
+        ;;
+      exit | e) 
+        echo "Exiting procedure"
+        exit 0
+        ;;
+      *) 
+        echo "Invalid Option. Enter Y/N/Exit"
+        ;;
+    esac
+  done
+fi
 
 
 

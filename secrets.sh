@@ -11,7 +11,7 @@ ENV_FILE="$SCRIPT_DIR/.env"
 if grep -q '^SECRET_PATH=' "$ENV_FILE"; then
   sed -i "s|^SECRET_PATH=.*|SECRET_PATH=$SECRETS_RAM_DIR|" "$ENV_FILE"
 else
-  printf "\n\n# Docker Secret Path \nSECRET_PATH=$SECRETS_RAM_DIR" >> "$ENV_FILE"
+  printf "\n\n# Docker Secret Path \nSECRET_PATH=%s\n" "$SECRETS_RAM_DIR" >> "$ENV_FILE"
 fi
 
 # Mount secrets folder to RAM
