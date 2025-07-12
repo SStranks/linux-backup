@@ -6,11 +6,11 @@ export default {
   jsxSingleQuote: false,
   bracketSpacing: true,
   bracketSameLine: true,
-  arrowParens: "always",
-  trailingComma: "es5",
+  arrowParens: 'always',
+  trailingComma: 'es5',
   overrides: [
     {
-      files: ["*.yml", "*.yaml"],
+      files: ['*.yml', '*.yaml'],
       options: {
         bracketSpacing: false,
       },

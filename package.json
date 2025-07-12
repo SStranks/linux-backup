@@ -27,13 +27,19 @@
     }
   },
   "scripts": {
-    "megalint": "docker run --rm -v \"$(pwd)\":/tmp/lint oxsecurity/megalinter:v8"
+    "megalint": "docker run --rm -v \"$(pwd)\":/tmp/lint oxsecurity/megalinter:v8",
+    "prepare": "husky"
   },
   "prettier": "@packages/prettier-config",
   "dependencies": {
+    "@packages/commitlint-config": "workspace:*",
     "@packages/prettier-config": "workspace:*"
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2",
+    "mega-linter-runner": "^8.8.0",
     "prettier": "^3.6.2"
   }
 }
