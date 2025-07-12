@@ -5,8 +5,8 @@ set -euo pipefail
 # MongoDB Backup Script
 #
 # Description:
-#   Performs a full MongoDB database backup inside a Docker container using 
-#   `mongodump`, compresses the output into a `.tgz` archive, and saves it to 
+#   Performs a full MongoDB database backup inside a Docker container using
+#   `mongodump`, compresses the output into a `.tgz` archive, and saves it to
 #   the host machine. Designed to be run from the project root.
 #
 # Requirements:
@@ -32,13 +32,13 @@ DOCKER_COMPOSE_YML="/home/$USER/Workspace/Projects/linux-backup/docker-compose.y
 LOG_FILE="./logs_$(date +%F).log"
 
 log() {
-    local log_level="$1"
-    local message="$2"
-    local script_name
-    script_name="$(basename "$0")"
-    local timestamp
-    timestamp=$(date +%F_%H-%M-%S)
-    echo "$timestamp [$log_level] [$script_name] $message" | tee -a "$LOG_FILE"
+  local log_level="$1"
+  local message="$2"
+  local script_name
+  script_name="$(basename "$0")"
+  local timestamp
+  timestamp=$(date +%F_%H-%M-%S)
+  echo "$timestamp [$log_level] [$script_name] $message" | tee -a "$LOG_FILE"
 }
 
 cleanup() {
@@ -136,12 +136,12 @@ done
 if docker container inspect "$DOCKER_CONTAINER_MONGO" > /dev/null 2>&1; then
   log "INFO" "Container $DOCKER_CONTAINER_MONGO: exists"
   # Check if container is running
-  if [[ $(docker container inspect -f '{{.State.Running}}' "$DOCKER_CONTAINER_MONGO") == "false" ]]; then  
-    log "INFO" "Container $DOCKER_CONTAINER_MONGO: is not running. Starting.."; 
+  if [[ $(docker container inspect -f '{{.State.Running}}' "$DOCKER_CONTAINER_MONGO") == "false" ]]; then
+    log "INFO" "Container $DOCKER_CONTAINER_MONGO: is not running. Starting..";
     docker container start "$DOCKER_CONTAINER_MONGO";
   fi
-else 
-  log "INFO" "Container $DOCKER_CONTAINER_MONGO: doesn't exist. Starting compose file.."; 
+else
+  log "INFO" "Container $DOCKER_CONTAINER_MONGO: doesn't exist. Starting compose file..";
   docker compose -f "$DOCKER_COMPOSE_YML" up -d;
 fi
 
@@ -178,15 +178,15 @@ do
   # // NOTE:  echo 'db.runCommand(\"ping\").ok' | mongosh --quiet" - this produced mongosh prompt itself, not just stdout
   mongodb_ping_status=$(docker exec "$DOCKER_CONTAINER_MONGO" sh -c "mongosh --quiet --eval \"db.runCommand('ping').ok\"")
   if [[ "$mongodb_ping_status" == "1" ]]; then
-    log "INFO" "Mongo service active"; 
+    log "INFO" "Mongo service active";
     break;
   else
-    if [[ $i -eq 5 ]]; then 
+    if [[ $i -eq 5 ]]; then
       log "ERROR" "Mongo service not active"
       docker container stop "$DOCKER_CONTAINER_MONGO"
       wait
       return 1 2> /dev/null || exit 1
-    fi 
+    fi
     log "INFO" "Mongo service not ready. Trying again in 2 seconds.."
     sleep 2
   fi

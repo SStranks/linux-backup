@@ -5,7 +5,7 @@ set -euo pipefail
 # main.sh - WSL2 Linux Backup Script
 #
 # Description:
-#   Backs up critical Linux system and user files, compresses and encrypts 
+#   Backs up critical Linux system and user files, compresses and encrypts
 #   the archives, and transfers them to a mounted Windows drive.
 #
 # Requirements:
@@ -129,27 +129,27 @@ fi
 
 # Linux root folder to hold backup files; user confirmation
 while true; do
-	read -er -p "Please enter linux directory where backup folder will be created: " -i "/tmp" linux_dir
-	linux_backup_dir="${linux_dir}/$(date +%F)-backup"
-	read -er -p "Backup folder: ${linux_backup_dir} .Continue? (Y/N/Exit): " -i "y" confirm
-	confirm=${confirm,,}
+  read -er -p "Please enter linux directory where backup folder will be created: " -i "/tmp" linux_dir
+  linux_backup_dir="${linux_dir}/$(date +%F)-backup"
+  read -er -p "Backup folder: ${linux_backup_dir} .Continue? (Y/N/Exit): " -i "y" confirm
+  confirm=${confirm,,}
 
-	case "$confirm" in 
-		yes | y) 
+  case "$confirm" in
+    yes | y)
       echo "Proceeding" && echo && mkdir -p "$linux_backup_dir" && echo "Folder created: ${linux_backup_dir}"
-			break
+      break
       ;;
-		no | n) 
+    no | n)
       continue
       ;;
-		exit | e)
+    exit | e)
       echo "Exiting procedure"
-			exit 0
+      exit 0
       ;;
-		*) 
+    *)
       echo "Invalid Option. Enter Y/N/Exit"
-			;;
-	esac
+      ;;
+  esac
 done
 
 
@@ -176,22 +176,22 @@ fi
 
 # Compress files to tar archive; user confirmation
 while true; do
-	read -er -p "Proceed with Tarball compression?: (Y/Exit)" -i "y" question_compression
-	question_compression=${question_compression,,}
+  read -er -p "Proceed with Tarball compression?: (Y/Exit)" -i "y" question_compression
+  question_compression=${question_compression,,}
 
-	case $question_compression in 
-		yes | y) 
+  case $question_compression in
+    yes | y)
       echo "Proceeding with compression" && echo
-			break
+      break
       ;;
-		exit | e) 
+    exit | e)
       echo "Exiting procedure"
-			exit 0
+      exit 0
       ;;
-		*) 
+    *)
       echo "Invalid Option. Enter Y/Exit"
-			;;
-	esac
+      ;;
+  esac
 done
 
 # Compress files to tar archive
@@ -220,22 +220,22 @@ log "INFO" "Post-Compression size total: $(du "${linux_backup_dir}"/sstranks87.t
 
 # Encrypt tar archives; user confirmation
 while true; do
-	read -er -p "Proceed with Tarball encryption(Y/Exit)" -i "y" question_encryption
-	question_encryption=${question_encryption,,}
+  read -er -p "Proceed with Tarball encryption(Y/Exit)" -i "y" question_encryption
+  question_encryption=${question_encryption,,}
 
-	case $question_encryption in 
-		yes | y) 
+  case $question_encryption in
+    yes | y)
       echo "Proceeding with encryption" && echo
-			break
+      break
       ;;
-		exit | e) 
+    exit | e)
       echo "Exiting procedure"
-			exit 0
+      exit 0
       ;;
-		*) 
+    *)
       echo "Invalid Option. Enter Y/Exit";
-			;;
-	esac
+      ;;
+  esac
 done
 
 # Encrypt tar archives
@@ -258,14 +258,14 @@ log "INFO" "Encrypting tar archives with gpg: Completed"
 
 # Mount windows drive; user confirmation
 while true; do
-	read -er -p "Windows Drive letter to mount: " -i "D" drive_letter
-	drive_letter=${drive_letter,,}
+  read -er -p "Windows Drive letter to mount: " -i "D" drive_letter
+  drive_letter=${drive_letter,,}
 
-	if [[ $drive_letter == [a-z] ]]; then 
-		break;
-	else 
-		echo "Please provider a drive letter from a-z" && echo && continue
-	fi
+  if [[ $drive_letter == [a-z] ]]; then
+    break;
+  else
+    echo "Please provider a drive letter from a-z" && echo && continue
+  fi
 done
 
 if mountpoint -q "/mnt/${drive_letter}"; then
@@ -275,21 +275,20 @@ else
   while true; do
     read -er -p "Mount ${drive_letter^}: to /mnt/${drive_letter} .Continue? (Y/N/Exit): " -i "y" confirm
 
-    case $confirm in 
-      yes | y) 
+    case $confirm in
+      yes | y)
         echo "Proceeding to mount drive" && echo
         break
         ;;
-      exit | e) 
+      exit | e)
         echo "Exiting procedure"
         exit 0
         ;;
-      *) 
+      *)
         echo "Invalid Option. Enter Y/Exit"
         ;;
     esac
   done
-
   # Mount windows drive
   log "INFO" "Mounting /mnt/${drive_letter}: Begin"
   mkdir -p /mnt/"${drive_letter}"
@@ -301,53 +300,53 @@ fi
 
 # Confirm windows directory to hold backup files
 while true; do
-	read -er -p "Please enter windows directory where backup folder will be created: " -i "/Backups/Linux" windows_dir
-	windows_backup_dir="${windows_dir}/$(date '+%Y_%m_%d')"
-	read -er -p "Backup folder: ${drive_letter^}:${windows_backup_dir} .Continue? (Y/N/Exit): " -i "y" confirm
-	confirm=${confirm,,}
+  read -er -p "Please enter windows directory where backup folder will be created: " -i "/Backups/Linux" windows_dir
+  windows_backup_dir="${windows_dir}/$(date '+%Y_%m_%d')"
+  read -er -p "Backup folder: ${drive_letter^}:${windows_backup_dir} .Continue? (Y/N/Exit): " -i "y" confirm
+  confirm=${confirm,,}
 
-	case "$confirm" in 
-		yes | y) 
+  case "$confirm" in
+    yes | y)
       echo "Proceeding" && echo && mkdir -p /mnt/"${drive_letter}"/"${windows_backup_dir}" && echo "Folder created: /mnt/${drive_letter}/${windows_backup_dir}"
-			break
+      break
       ;;
-		no | n) 
+    no | n)
       continue
       ;;
-		exit | e) 
+    exit | e)
       echo "Exiting procedure"
-			exit 0
+      exit 0
       ;;
-		*) 
+    *)
       echo "Invalid Option. Enter Y/N/Exit"
-			;;
-	esac
+      ;;
+  esac
 done
 
 
 
 # Transfer encrypted archives to windows system; user confirmation
 while true; do
-	log "INFO" "Transfer of encrypted tar archives"
-	log "INFO" "Files will be transferred from: ${linux_backup_dir}"
-	log "INFO" "Files will be transferred to: /mnt/${drive_letter}/${windows_backup_dir}"
-	read -er -p "Proceed with file transfer? (Y/Exit)" -i "y" question_transfer
-	question_transfer=${question_transfer,,}
+  log "INFO" "Transfer of encrypted tar archives"
+  log "INFO" "Files will be transferred from: ${linux_backup_dir}"
+  log "INFO" "Files will be transferred to: /mnt/${drive_letter}/${windows_backup_dir}"
+  read -er -p "Proceed with file transfer? (Y/Exit)" -i "y" question_transfer
+  question_transfer=${question_transfer,,}
 
-	case $question_transfer in 
-		yes | y) 
+  case $question_transfer in
+    yes | y)
       echo "Proceeding with file transfer" && echo
-			break
+      break
       ;;
-		exit | e) 
+    exit | e)
       echo "Exiting procedure"
-			exit 0
+      exit 0
       ;;
-		*) 
+    *)
       echo "Invalid Option. Enter Y/Exit";
-			;;
+      ;;
 
-	esac
+  esac
 done
 
 # Transfer encrypted archives to windows system
@@ -363,25 +362,25 @@ if [[ "$is_root" == true ]]; then
     read -er -p "Do you wish to unmount /mnt/${drive_letter}? (Y/N/Exit): " -i "y" confirm
     confirm=${confirm,,}
 
-    case "$confirm" in 
-      yes | y) 
+    case "$confirm" in
+      yes | y)
         # Unmount windows drive
         log "INFO" "Unmounting /mnt/${drive_letter}: Begin"
-        umount /mnt/"${drive_letter}" || { 
-          log "ERROR" "Failed to unmount /mnt/${drive_letter}" 
-          exit 1 
+        umount /mnt/"${drive_letter}" || {
+          log "ERROR" "Failed to unmount /mnt/${drive_letter}"
+          exit 1
         }
         log "INFO" "Unmounting /mnt/${drive_letter}: Completed"
         break
         ;;
-      no | n) 
+      no | n)
         continue
         ;;
-      exit | e) 
+      exit | e)
         echo "Exiting procedure"
         exit 0
         ;;
-      *) 
+      *)
         echo "Invalid Option. Enter Y/N/Exit"
         ;;
     esac

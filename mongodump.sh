@@ -6,16 +6,16 @@ set -euo pipefail
 #
 # Description:
 #   Runs `mongodump` inside the MongoDB container to export all databases as BSON,
-#   stores the output in a timestamped folder under /tmp, and compresses it into 
+#   stores the output in a timestamped folder under /tmp, and compresses it into
 #   a `.tgz` archive.
 #
 # Usage:
-#   This script is intended to be run automatically when the MongoDB container 
+#   This script is intended to be run automatically when the MongoDB container
 #   starts; called from init.sh
 #
 # Requirements:
 #   - Bash v4+
-#   - Docker secrets: 
+#   - Docker secrets:
 #       /run/secrets/mongodb_user
 #       /run/secrets/mongodb_password
 #
