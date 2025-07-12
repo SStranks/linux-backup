@@ -1,0 +1,21 @@
+# Configuration file for MegaLinter
+# See all available variables at https://megalinter.io/configuration/ and in linters documentation
+---
+APPLY_FIXES: none
+ENABLE:
+  - BASH
+  - DOCKERFILE
+  - EDITORCONFIG
+  - MARKDOWN
+  - YAML
+FILTER_REGEX_EXCLUDE: '(pnpm-lock.yaml|pnpm-workspace.yaml)'
+BASH_SHELLCHECK_ARGUMENTS: '-S warning'
+BASH_SHFMT_ARGUMENTS: '--case-indent --indent 2'
+
+CLEAR_REPORT_FOLDER: true
+EXCLUDED_DIRECTORIES: ['megalinter-reports', 'node_modules']
+FLAVOR_SUGGESTIONS: false
+MARKDOWN_SUMMARY_REPORTER: true
+PRINT_ALL_FILES: false
+SHOW_ELAPSED_TIME: true
+# YAML_FILTER_REGEX_EXCLUDE: '(docker-compose.yml)'

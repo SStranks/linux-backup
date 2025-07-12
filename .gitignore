@@ -1,6 +1,7 @@
 # Folders
 /Temp
 /node_modules
+/megalinter-reports
 
 # Env files
 **/.env

@@ -1,0 +1,39 @@
+{
+  "name": "linux-backup",
+  "version": "1.0.0",
+  "description": "WSL2 Backup Automation",
+  "author": "Simon Stranks <sstranks0@gmail.com> <https://github.com/SStranks>",
+  "repository": {
+    "type": "github",
+    "url": "https://github.com/SStranks/linux-backup"
+  },
+  "license": "ISC",
+  "type": "module",
+  "packageManager": "pnpm@10.12.1",
+  "engines": {
+    "node": ">=20.18.0",
+    "pnpm": ">=10"
+  },
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "onFail": "error",
+      "version": ">=20.18.0"
+    },
+    "packageManager": {
+      "name": "pnpm",
+      "onFail": "error",
+      "version": ">=10"
+    }
+  },
+  "scripts": {
+    "megalint": "docker run --rm -v \"$(pwd)\":/tmp/lint oxsecurity/megalinter:v8"
+  },
+  "prettier": "@packages/prettier-config",
+  "dependencies": {
+    "@packages/prettier-config": "workspace:*"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2"
+  }
+}
