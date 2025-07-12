@@ -34,13 +34,13 @@ set -euo pipefail
 LOG_FILE="./logs_$(date +%F).log"
 
 log() {
-    local log_level="$1"
-    local message="$2"
-    local script_name
-    script_name="$(basename "$0")"
-    local timestamp
-    timestamp=$(date +%F_%H-%M-%S)
-    echo "$timestamp [$log_level] [$script_name] $message" | tee -a "$LOG_FILE"
+  local log_level="$1"
+  local message="$2"
+  local script_name
+  script_name="$(basename "$0")"
+  local timestamp
+  timestamp=$(date +%F_%H-%M-%S)
+  echo "$timestamp [$log_level] [$script_name] $message" | tee -a "$LOG_FILE"
 }
 
 cleanup() {
@@ -62,7 +62,6 @@ if [[ $EUID -ne 0 ]]; then
   log "WARN" "Not running as root. System directories will be skipped"
   is_root="false"
 fi
-
 
 # Backup mongo database; user confirmation
 while true; do
@@ -152,8 +151,6 @@ while true; do
   esac
 done
 
-
-
 # Copy files from sources
 for user in "${selected_users[@]}"; do
   log "INFO" "Copying files of user: $user"
@@ -163,7 +160,7 @@ done
 
 # Copy root files if root
 if [[ "$is_root" == true ]]; then
-    log "INFO" "Copying files of /etc"
+  log "INFO" "Copying files of /etc"
   rsync -ar /etc/ "${linux_backup_dir}/etc/"
   log "INFO" "Files copied to ${linux_backup_dir}/etc . Folder Size: $(du "${linux_backup_dir}/etc" -sh | awk '{print $1}')"
 
@@ -171,8 +168,6 @@ if [[ "$is_root" == true ]]; then
   rsync -ar /root/ "${linux_backup_dir}"/root/
   log "INFO" "Files copied to ${linux_backup_dir}/root . Folder Size: $(du "${linux_backup_dir}/root" -sh | awk '{print $1}')"
 fi
-
-
 
 # Compress files to tar archive; user confirmation
 while true; do
@@ -216,8 +211,6 @@ log "INFO" "All files compressed successfully"
 log "INFO" "Pre-Compression size total: ${pre_compression_folder_size}"
 log "INFO" "Post-Compression size total: $(du "${linux_backup_dir}"/sstranks87.tgz "${linux_backup_dir}"/dev1.tgz "${linux_backup_dir}"/root.tgz "${linux_backup_dir}"/etc.tgz -ch | grep total | awk '{print $1}')"
 
-
-
 # Encrypt tar archives; user confirmation
 while true; do
   read -er -p "Proceed with Tarball encryption(Y/Exit)" -i "y" question_encryption
@@ -233,7 +226,7 @@ while true; do
       exit 0
       ;;
     *)
-      echo "Invalid Option. Enter Y/Exit";
+      echo "Invalid Option. Enter Y/Exit"
       ;;
   esac
 done
@@ -254,15 +247,13 @@ for archive in "${all_archives[@]}"; do
 done
 log "INFO" "Encrypting tar archives with gpg: Completed"
 
-
-
 # Mount windows drive; user confirmation
 while true; do
   read -er -p "Windows Drive letter to mount: " -i "D" drive_letter
   drive_letter=${drive_letter,,}
 
   if [[ $drive_letter == [a-z] ]]; then
-    break;
+    break
   else
     echo "Please provider a drive letter from a-z" && echo && continue
   fi
@@ -296,8 +287,6 @@ else
   log "INFO" "Mounting /mnt/${drive_letter}: Completed"
 fi
 
-
-
 # Confirm windows directory to hold backup files
 while true; do
   read -er -p "Please enter windows directory where backup folder will be created: " -i "/Backups/Linux" windows_dir
@@ -323,8 +312,6 @@ while true; do
   esac
 done
 
-
-
 # Transfer encrypted archives to windows system; user confirmation
 while true; do
   log "INFO" "Transfer of encrypted tar archives"
@@ -343,7 +330,7 @@ while true; do
       exit 0
       ;;
     *)
-      echo "Invalid Option. Enter Y/Exit";
+      echo "Invalid Option. Enter Y/Exit"
       ;;
 
   esac
@@ -353,8 +340,6 @@ done
 log "INFO" "Transferring files to /mnt/${drive_letter}/${windows_backup_dir}: Begin"
 rsync -a "${linux_backup_dir}"/mongodb.tgz.gpg "${linux_backup_dir}"/sstranks87.tgz.gpg "${linux_backup_dir}"/dev1.tgz.gpg "${linux_backup_dir}"/root.tgz.gpg "${linux_backup_dir}"/etc.tgz.gpg /mnt/"${drive_letter}"/"${windows_backup_dir}"/
 log "INFO" "Transferring files /mnt/${drive_letter}/${windows_backup_dir}: Completed"
-
-
 
 # If root unmount drive; user confirmation
 if [[ "$is_root" == true ]]; then
@@ -386,8 +371,6 @@ if [[ "$is_root" == true ]]; then
     esac
   done
 fi
-
-
 
 log "INFO" "WSL2 Linux Backup Script: Completed"
 exit 0

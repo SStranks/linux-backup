@@ -61,8 +61,6 @@ cleanup() {
 }
 trap 'exit_code=$?; cleanup $exit_code' EXIT
 
-
-
 # Set env variables
 if [[ -f ./.env ]]; then
   set -a && source ./.env && set +a
@@ -70,8 +68,6 @@ else
   log "ERROR" "Missing .env file"
   exit 1
 fi
-
-
 
 # Export decrypted secrets to individual secret files
 if [[ -x "$SECRETS_SCRIPT" ]]; then
@@ -81,8 +77,6 @@ else
   log "ERROR" "Secrets script not found or not executable: $SECRETS_SCRIPT"
   exit 1
 fi
-
-
 
 # Get Docker rootless socket
 if [[ -n "${XDG_RUNTIME_DIR:-}" && -S "$XDG_RUNTIME_DIR/docker.sock" ]]; then
@@ -96,9 +90,8 @@ else
   exit 1
 fi
 
-
 # Initialize Docker Daemon (rootless) if not already active
-if ! curl -s --unix-socket "$DOCKER_ROOTLESS_SOCKET" http://localhost/_ping >/dev/null 2>&1; then
+if ! curl -s --unix-socket "$DOCKER_ROOTLESS_SOCKET" http://localhost/_ping > /dev/null 2>&1; then
   if systemctl --user is-active --quiet docker; then
     log "INFO" "Docker socket exists but not responsive; restarting.."
     systemctl --user restart docker
@@ -106,18 +99,16 @@ if ! curl -s --unix-socket "$DOCKER_ROOTLESS_SOCKET" http://localhost/_ping >/de
     log "INFO" "Docker rootless not running; starting.."
     systemctl --user start docker || {
       log "INFO" "systemd docker start failed; attempting manual dockerd-rootless.sh initialization.."
-      dockerd-rootless.sh >/dev/null 2>&1 &
+      dockerd-rootless.sh > /dev/null 2>&1 &
       DOCKER_DAEMON=$!
     }
   fi
 fi
 
-
 # Wait for Docker Rootless Daemon to initialize
-for i in {1..5}
-do
+for i in {1..5}; do
   # Daemon returns OK or null
-  if curl -s --unix-socket "$DOCKER_ROOTLESS_SOCKET" http://localhost/_ping >/dev/null 2>&1; then
+  if curl -s --unix-socket "$DOCKER_ROOTLESS_SOCKET" http://localhost/_ping > /dev/null 2>&1; then
     log "INFO" "Docker Rootless Daemon: Active"
     break
   else
@@ -131,25 +122,23 @@ do
   fi
 done
 
-
 # Check if container exists
 if docker container inspect "$DOCKER_CONTAINER_MONGO" > /dev/null 2>&1; then
   log "INFO" "Container $DOCKER_CONTAINER_MONGO: exists"
   # Check if container is running
   if [[ $(docker container inspect -f '{{.State.Running}}' "$DOCKER_CONTAINER_MONGO") == "false" ]]; then
-    log "INFO" "Container $DOCKER_CONTAINER_MONGO: is not running. Starting..";
-    docker container start "$DOCKER_CONTAINER_MONGO";
+    log "INFO" "Container $DOCKER_CONTAINER_MONGO: is not running. Starting.."
+    docker container start "$DOCKER_CONTAINER_MONGO"
   fi
 else
-  log "INFO" "Container $DOCKER_CONTAINER_MONGO: doesn't exist. Starting compose file..";
-  docker compose -f "$DOCKER_COMPOSE_YML" up -d;
+  log "INFO" "Container $DOCKER_CONTAINER_MONGO: doesn't exist. Starting compose file.."
+  docker compose -f "$DOCKER_COMPOSE_YML" up -d
 fi
-
 
 # Wait for docker container to reach "running" state
 echo "Waiting for container $DOCKER_CONTAINER_MONGO to be running..."
 for i in {1..10}; do
-  state=$(docker container inspect -f '{{.State.Running}}' "$DOCKER_CONTAINER_MONGO" 2>/dev/null || echo "false")
+  state=$(docker container inspect -f '{{.State.Running}}' "$DOCKER_CONTAINER_MONGO" 2> /dev/null || echo "false")
   if [[ "$state" == "true" ]]; then
     log "INFO" "Container $DOCKER_CONTAINER_MONGO: is running"
     break
@@ -164,22 +153,19 @@ for i in {1..10}; do
   sleep 1
 done
 
-
 # Check presence of mongosh in container
 docker exec "$DOCKER_CONTAINER_MONGO" sh -c "command -v mongosh >/dev/null 2>&1" || {
   log "ERROR" "Error: mongosh is not installed in the Mongo container."
   exit 1
 }
 
-
 # Wait for MongoDB service ready
-for i in {1..5}
-do
+for i in {1..5}; do
   # // NOTE:  echo 'db.runCommand(\"ping\").ok' | mongosh --quiet" - this produced mongosh prompt itself, not just stdout
   mongodb_ping_status=$(docker exec "$DOCKER_CONTAINER_MONGO" sh -c "mongosh --quiet --eval \"db.runCommand('ping').ok\"")
   if [[ "$mongodb_ping_status" == "1" ]]; then
-    log "INFO" "Mongo service active";
-    break;
+    log "INFO" "Mongo service active"
+    break
   else
     if [[ $i -eq 5 ]]; then
       log "ERROR" "Mongo service not active"
@@ -191,7 +177,6 @@ do
     sleep 2
   fi
 done
-
 
 # Run mongodump.sh in container to export all databases as BSON
 ARCHIVE_PATH=$(docker exec "$DOCKER_CONTAINER_MONGO" timeout 120 /tmp/mongodump.sh | tail -n 1)

@@ -39,19 +39,31 @@ MONGO_USER="$(cat /run/secrets/mongo_user_service)"
 MONGO_PASSWORD="$(cat /run/secrets/mongo_password_service)"
 
 log() {
-    local log_level="$1"
-    local message="$2"
-    local script_name
-    script_name="$(basename "$0")"
-    local timestamp
-    timestamp=$(date +%F_%H-%M-%S)
-    echo "$timestamp [$log_level] [$script_name] $message" | tee -a "$LOG_FILE"
+  local log_level="$1"
+  local message="$2"
+  local script_name
+  script_name="$(basename "$0")"
+  local timestamp
+  timestamp=$(date +%F_%H-%M-%S)
+  echo "$timestamp [$log_level] [$script_name] $message" | tee -a "$LOG_FILE"
 }
 
-[[ -f /run/secrets/mongo_user_service ]] || { log "ERROR" "Missing mongo_user_service secret"; exit 1; }
-[[ -f /run/secrets/mongo_password_service ]] || { log "ERROR" "Missing mongo_password_service secret"; exit 1; }
-[[ -z "${MONGO_PROTOCOL:-}" ]] && { log "ERROR" "MONGO_PROTOCOL not set"; exit 1; }
-[[ -z "${MONGO_LOCAL_PORT:-}" ]] && { log "ERROR" "MONGO_LOCAL_PORT not set"; exit 1; }
+[[ -f /run/secrets/mongo_user_service ]] || {
+  log "ERROR" "Missing mongo_user_service secret"
+  exit 1
+}
+[[ -f /run/secrets/mongo_password_service ]] || {
+  log "ERROR" "Missing mongo_password_service secret"
+  exit 1
+}
+[[ -z "${MONGO_PROTOCOL:-}" ]] && {
+  log "ERROR" "MONGO_PROTOCOL not set"
+  exit 1
+}
+[[ -z "${MONGO_LOCAL_PORT:-}" ]] && {
+  log "ERROR" "MONGO_LOCAL_PORT not set"
+  exit 1
+}
 
 log "INFO" "[$(date)] Starting MongoDB dump..."
 
