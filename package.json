@@ -27,7 +27,7 @@
     }
   },
   "scripts": {
-    "megalint": "docker run --rm -v \"$(pwd)\":/tmp/lint oxsecurity/megalinter:v8",
+    "megalint": "docker run --rm -e MEGALINTER_CONFIG=.mega-linter.local.yaml -v \"$(pwd)\":/tmp/lint oxsecurity/megalinter:v8",
     "prepare": "husky"
   },
   "prettier": "@packages/prettier-config",
