@@ -11,3 +11,43 @@ end_of_line = lf
 indent_style = space
 indent_size = 2
 max_line_length = 120
+
+[*.{js,ts,jsx,tsx}]
+indent_size = 2
+
+[*.{json,jsonc,json5,yaml,yml,toml}]
+indent_size = 2
+max_line_length = unset
+
+[*.{css,scss,sass}]
+indent_size = 2
+
+[*.html]
+indent_size = 2
+max_line_length = unset
+trim_trailing_whitespace = true
+
+[*.md]
+indent_size = 2
+max_line_length = unset
+trim_trailing_whitespace = true
+
+[*.sh]
+indent_size = 2
+max_line_length = unset
+indent_style = space
+
+[{.env,.env.*}]
+trim_trailing_whitespace = false
+max_line_length = unset
+indent_size = 0
+
+[{Dockerfile,Dockerfile.*}]
+indent_size = 2
+
+[{.gitignore,.dockerignore,.prettierignore}]
+trim_trailing_whitespace = false
+
+[Makefile]
+indent_size = 2
+indent_style = tab

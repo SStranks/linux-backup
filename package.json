@@ -11,14 +11,14 @@
   "type": "module",
   "packageManager": "pnpm@10.12.1",
   "engines": {
-    "node": ">=20.18.0",
+    "node": ">=20 <24",
     "pnpm": ">=10"
   },
   "devEngines": {
     "runtime": {
       "name": "node",
       "onFail": "error",
-      "version": ">=20.18.0"
+      "version": ">=20 <24"
     },
     "packageManager": {
       "name": "pnpm",
