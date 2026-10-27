@@ -1,5 +1,5 @@
-name: 'mongo-backup'
-version: '3.7'
+# yaml-language-server: $schema=https://raw.githubusercontent.com/compose-spec/compose-go/master/schema/compose-spec.json
+---
 services:
   # DB: MongoDB
   mongo:
@@ -13,8 +13,13 @@ services:
     volumes:
       - ./mongodump.sh:/tmp/mongodump.sh:ro
       - mongodb-data:/data/db
+    tmpfs:
+      - /tmp
     security_opt:
       - no-new-privileges
+    read_only: true
+    cap_drop:
+      - ALL
     secrets:
       - mongo_user_service
       - mongo_password_service

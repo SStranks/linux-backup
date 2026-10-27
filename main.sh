@@ -31,39 +31,44 @@ set -euo pipefail
 #--- PROCEDURE START ---#
 #########################
 
-LOG_FILE="./logs_$(date +%F).log"
+project_dir="$(pnpm -w exec pwd)"
+log_file="./logs_$(date +%F).log" && readonly log_file
 
 log() {
   local log_level="$1"
   local message="$2"
   local script_name
-  script_name="$(basename "$0")"
   local timestamp
+
+  script_name="$(basename "$0")"
   timestamp=$(date +%F_%H-%M-%S)
-  echo "$timestamp [$log_level] [$script_name] $message" | tee -a "$LOG_FILE"
+
+  echo "$timestamp [$log_level] [$script_name] $message" | tee -a "$log_file"
 }
 
+# shellcheck disable=SC2329
 cleanup() {
-  local exit_code="$1"
-  if [ $exit_code -ne 0 ]; then
+  local exit_code="${?}"
+  if [[ "$exit_code" -ne 0 ]]; then
     # BASH_LINENO[0] is the line number where cleanup was called,
     # BASH_LINENO[1] is the line number where the function/script exited
     local line=${BASH_LINENO[0]}
     log "ERROR" "init.sh exited with code $exit_code at or near line $line"
   fi
 }
-trap 'exit_code=$?; cleanup $exit_code' EXIT
+
+trap cleanup EXIT
 
 log "INFO" "WSL2 Linux Backup Script: Starting.."
 
-# Determine if running as root
+# determine if running as root
 is_root="true"
-if [[ $EUID -ne 0 ]]; then
+if [[ "$EUID" -ne 0 ]]; then
   log "WARN" "Not running as root. System directories will be skipped"
   is_root="false"
 fi
 
-# Backup mongo database; user confirmation
+# backup mongo database; user confirmation
 while true; do
   read -er -p "Do you want to back up the MongoDB database? (Y/N): " -i "y" backup_mongo
   backup_mongo=${backup_mongo,,}
@@ -72,7 +77,7 @@ while true; do
     y | yes)
       log "INFO" "User opted to run MongoDB backup"
 
-      # List users to choose the one with Docker + Mongo access
+      # list users to choose the one with Docker + Mongo access
       log "INFO" "Available users on system:"
       mapfile -t available_users < <(awk -F: '($3 >= 1000) && ($7 !~ /nologin/) { print $1 }' /etc/passwd)
       for user in "${available_users[@]}"; do echo "- $user"; done
@@ -81,9 +86,9 @@ while true; do
         read -er -p "Enter username to run init.sh (Docker + Mongo access): " selected_user
         if [[ " ${available_users[*]} " == *" $selected_user "* ]]; then
           log "INFO" "Running MongoDB backup via init.sh as user: $selected_user"
-          su -c "source /home/$selected_user/Workspace/Projects/linux-backup/init.sh" - "$selected_user"
+          su -c "source $project_dir/init.sh" - "$selected_user"
           mongodump_exitcode=$?
-          if [[ $mongodump_exitcode -ne 0 ]]; then
+          if [[ "$mongodump_exitcode" -ne 0 ]]; then
             log "ERROR" "Mongo dump did not complete! Exitcode: $mongodump_exitcode"
             log "ERROR" "Exiting main.sh"
             exit 1
@@ -105,7 +110,7 @@ while true; do
   esac
 done
 
-# Select users to back up
+# select users to back up
 mapfile -t available_users < <(ls /home)
 log "INFO" "Available users: ${available_users[*]}"
 
@@ -126,7 +131,7 @@ if [[ ${#selected_users[@]} -eq 0 ]]; then
   exit 1
 fi
 
-# Linux root folder to hold backup files; user confirmation
+# linux root folder to hold backup files; user confirmation
 while true; do
   read -er -p "Please enter linux directory where backup folder will be created: " -i "/tmp" linux_dir
   linux_backup_dir="${linux_dir}/$(date +%F)-backup"
@@ -151,15 +156,15 @@ while true; do
   esac
 done
 
-# Copy files from sources
+# copy files from sources
 for user in "${selected_users[@]}"; do
   log "INFO" "Copying files of user: $user"
   rsync -ar --exclude={/.nvm,/.vscode-remote-containers,/.docker,/.npm,/.cache,/.config,/bin,/.local,/.vscode-server,/.vscode-oss-dev,/.console-ninja,**/node_modules,**/.git,**/dist} "/home/$user/" "${linux_backup_dir}/${user}/"
   log "INFO" "Files copied to ${linux_backup_dir}/${user} . Folder Size: $(du "${linux_backup_dir}/${user}" -sh | awk '{print $1}')"
 done
 
-# Copy root files if root
-if [[ "$is_root" == true ]]; then
+# copy root files if root
+if [[ "$is_root" == "true" ]]; then
   log "INFO" "Copying files of /etc"
   rsync -ar /etc/ "${linux_backup_dir}/etc/"
   log "INFO" "Files copied to ${linux_backup_dir}/etc . Folder Size: $(du "${linux_backup_dir}/etc" -sh | awk '{print $1}')"
@@ -169,7 +174,7 @@ if [[ "$is_root" == true ]]; then
   log "INFO" "Files copied to ${linux_backup_dir}/root . Folder Size: $(du "${linux_backup_dir}/root" -sh | awk '{print $1}')"
 fi
 
-# Compress files to tar archive; user confirmation
+# compress files to tar archive; user confirmation
 while true; do
   read -er -p "Proceed with Tarball compression?: (Y/Exit)" -i "y" question_compression
   question_compression=${question_compression,,}
@@ -189,7 +194,7 @@ while true; do
   esac
 done
 
-# Compress files to tar archive
+# compress files to tar archive
 pre_compression_folder_size=$(du "$linux_backup_dir" -sh | awk '{print $1}')
 
 for user in "${selected_users[@]}"; do
@@ -198,7 +203,7 @@ for user in "${selected_users[@]}"; do
   log "INFO" "Compressing files: ${linux_backup_dir}/${user}: Completed"
 done
 
-if [[ "$is_root" == true ]]; then
+if [[ "$is_root" == "true" ]]; then
   log "INFO" "Compressing files: ${linux_backup_dir}/root: Begin"
   tar czf "${linux_backup_dir}/root.tgz" -C "${linux_backup_dir}/root" .
   log "INFO" "Compressing files: ${linux_backup_dir}/root: Completed"
@@ -211,7 +216,7 @@ log "INFO" "All files compressed successfully"
 log "INFO" "Pre-Compression size total: ${pre_compression_folder_size}"
 log "INFO" "Post-Compression size total: $(du "${linux_backup_dir}"/sstranks87.tgz "${linux_backup_dir}"/dev1.tgz "${linux_backup_dir}"/root.tgz "${linux_backup_dir}"/etc.tgz -ch | grep total | awk '{print $1}')"
 
-# Encrypt tar archives; user confirmation
+# encrypt tar archives; user confirmation
 while true; do
   read -er -p "Proceed with Tarball encryption(Y/Exit)" -i "y" question_encryption
   question_encryption=${question_encryption,,}
@@ -231,13 +236,13 @@ while true; do
   esac
 done
 
-# Encrypt tar archives
+# encrypt tar archives
 all_archives=()
 for user in "${selected_users[@]}"; do
   all_archives+=("${linux_backup_dir}/${user}.tgz")
 done
 
-if [[ "$is_root" == true ]]; then
+if [[ "$is_root" == "true" ]]; then
   all_archives+=("${linux_backup_dir}/root.tgz" "${linux_backup_dir}/etc.tgz" "${linux_backup_dir}/mongodb.tgz")
 fi
 
@@ -247,12 +252,12 @@ for archive in "${all_archives[@]}"; do
 done
 log "INFO" "Encrypting tar archives with gpg: Completed"
 
-# Mount windows drive; user confirmation
+# mount windows drive; user confirmation
 while true; do
   read -er -p "Windows Drive letter to mount: " -i "D" drive_letter
   drive_letter=${drive_letter,,}
 
-  if [[ $drive_letter == [a-z] ]]; then
+  if [[ "$drive_letter" == [a-z] ]]; then
     break
   else
     echo "Please provider a drive letter from a-z" && echo && continue
@@ -262,11 +267,11 @@ done
 if mountpoint -q "/mnt/${drive_letter}"; then
   log "INFO" "/mnt/${drive_letter} is already mounted"
 else
-  # Mount windows drive; user confirmation
+  # mount windows drive; user confirmation
   while true; do
     read -er -p "Mount ${drive_letter^}: to /mnt/${drive_letter} .Continue? (Y/N/Exit): " -i "y" confirm
 
-    case $confirm in
+    case "$confirm" in
       yes | y)
         echo "Proceeding to mount drive" && echo
         break
@@ -280,14 +285,14 @@ else
         ;;
     esac
   done
-  # Mount windows drive
+  # mount windows drive
   log "INFO" "Mounting /mnt/${drive_letter}: Begin"
   mkdir -p /mnt/"${drive_letter}"
   mount -t drvfs "${drive_letter^}: /mnt/${drive_letter}"
   log "INFO" "Mounting /mnt/${drive_letter}: Completed"
 fi
 
-# Confirm windows directory to hold backup files
+# confirm windows directory to hold backup files
 while true; do
   read -er -p "Please enter windows directory where backup folder will be created: " -i "/Backups/Linux" windows_dir
   windows_backup_dir="${windows_dir}/$(date '+%Y_%m_%d')"
@@ -312,15 +317,15 @@ while true; do
   esac
 done
 
-# Transfer encrypted archives to windows system; user confirmation
+# transfer encrypted archives to windows system; user confirmation
 while true; do
   log "INFO" "Transfer of encrypted tar archives"
   log "INFO" "Files will be transferred from: ${linux_backup_dir}"
   log "INFO" "Files will be transferred to: /mnt/${drive_letter}/${windows_backup_dir}"
   read -er -p "Proceed with file transfer? (Y/Exit)" -i "y" question_transfer
-  question_transfer=${question_transfer,,}
+  question_transfer="${question_transfer,,}"
 
-  case $question_transfer in
+  case "$question_transfer" in
     yes | y)
       echo "Proceeding with file transfer" && echo
       break
@@ -336,16 +341,16 @@ while true; do
   esac
 done
 
-# Transfer encrypted archives to windows system
+# transfer encrypted archives to windows system
 log "INFO" "Transferring files to /mnt/${drive_letter}/${windows_backup_dir}: Begin"
 rsync -a "${linux_backup_dir}"/mongodb.tgz.gpg "${linux_backup_dir}"/sstranks87.tgz.gpg "${linux_backup_dir}"/dev1.tgz.gpg "${linux_backup_dir}"/root.tgz.gpg "${linux_backup_dir}"/etc.tgz.gpg /mnt/"${drive_letter}"/"${windows_backup_dir}"/
 log "INFO" "Transferring files /mnt/${drive_letter}/${windows_backup_dir}: Completed"
 
-# If root unmount drive; user confirmation
-if [[ "$is_root" == true ]]; then
+# if root unmount drive; user confirmation
+if [[ "$is_root" == "true" ]]; then
   while true; do
     read -er -p "Do you wish to unmount /mnt/${drive_letter}? (Y/N/Exit): " -i "y" confirm
-    confirm=${confirm,,}
+    confirm="${confirm,,}"
 
     case "$confirm" in
       yes | y)

@@ -9,21 +9,16 @@
   },
   "license": "ISC",
   "type": "module",
-  "packageManager": "pnpm@10.12.1",
+  "packageManager": "pnpm@12.6.0",
   "engines": {
-    "node": ">=20 <24",
-    "pnpm": ">=10"
+    "node": "^22.18.0",
+    "pnpm": "^=12"
   },
   "devEngines": {
     "runtime": {
       "name": "node",
-      "onFail": "error",
-      "version": ">=20 <24"
-    },
-    "packageManager": {
-      "name": "pnpm",
-      "onFail": "error",
-      "version": ">=10"
+      "onFail": "warn",
+      "version": "^22.18.0"
     }
   },
   "scripts": {
@@ -33,11 +28,14 @@
   "prettier": "@packages/prettier-config",
   "dependencies": {
     "@packages/commitlint-config": "workspace:*",
-    "@packages/prettier-config": "workspace:*"
+    "@packages/prettier-config": "workspace:*",
+    "@packages/secretlint-config": "workspace:*"
   },
   "devDependencies": {
-    "@commitlint/cli": "^19.8.1",
+    "@commitlint/cli": "^21.2.4",
     "husky": "^9.1.7",
-    "prettier": "^3.6.2"
+    "lint-staged": "^17.6.0",
+    "prettier": "^3.9.10",
+    "secretlint": "^13.1.0"
   }
 }

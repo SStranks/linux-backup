@@ -1,26 +1,26 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Directory variables
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SECRETS_FILE="$SCRIPT_DIR/.secret.yaml"
-SECRETS_RAM_DIR="/run/user/$(id -u)/secrets"
-ENV_FILE="$SCRIPT_DIR/.env"
+# directory variables
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+secrets_file="$script_dir/.secret.yaml"
+secrets_ram_dir="/run/user/$(id -u)/secrets"
+env_file="$script_dir/.env"
 
-# Update .env file (in-place)
-if grep -q '^SECRET_PATH=' "$ENV_FILE"; then
-  sed -i "s|^SECRET_PATH=.*|SECRET_PATH=$SECRETS_RAM_DIR|" "$ENV_FILE"
+# update .env file (in-place)
+if grep -q '^SECRET_PATH=' "$env_file"; then
+  sed -i "s|^SECRET_PATH=.*|SECRET_PATH=$secrets_ram_dir|" "$env_file"
 else
-  printf "\n\n# Docker Secret Path \nSECRET_PATH=%s\n" "$SECRETS_RAM_DIR" >> "$ENV_FILE"
+  printf "\n\n# Docker Secret Path \nSECRET_PATH=%s\n" "$secrets_ram_dir" >> "$env_file"
 fi
 
-# Mount secrets folder to RAM
-mkdir -p "$SECRETS_RAM_DIR"
+# mount secrets folder to RAM
+mkdir -p "$secrets_ram_dir"
 
-# Decrypt secrets yaml; output each value in own .txt with key as filename
-# YAML Version
-sops exec-file "$SECRETS_FILE" 'bash -c "
-  SECRETS_RAM_DIR=\"'"$SECRETS_RAM_DIR"'\"
+# decrypt secrets yaml; output each value in own .txt with key as filename
+# YAML version
+sops exec-file "$secrets_file" 'bash -c "
+  secrets_ram_dir=\"'"$secrets_ram_dir"'\"
 
   while IFS= read -r line; do
     # Remove comments and empty lines
@@ -30,6 +30,6 @@ sops exec-file "$SECRETS_FILE" 'bash -c "
     key=\$(echo \"\${line%%:*}\" | xargs)
     val=\$(echo \"\${line#*:}\" | xargs)
 
-    echo -n \"\$val\" > \"\$SECRETS_RAM_DIR/.secret.\${key}.txt\"
+    echo -n \"\$val\" > \"\$secrets_ram_dir/.secret.\${key}.txt\"
   done < \"{}\"
 "'

@@ -29,64 +29,57 @@ set -euo pipefail
 #--- PROCEDURE START ---#
 #########################
 
-TIMESTAMP="$(date +%F_%H-%M-%S)"
+: "${MONGO_PROTOCOL:?MONGO_PROTOCOL variable is required}"
+: "${MONGO_LOCAL_PORT:?MONGO_LOCAL_PORT variable is required}"
 
-OUTPUT_DIR="/tmp/mongo_$TIMESTAMP"
-ARCHIVE_PATH="/tmp/mongodb_$TIMESTAMP.tgz"
-LOG_FILE="/tmp/mongodump_$(date +%F).log"
+mongo_user="$(cat /run/secrets/mongo_user_service)"
+mongo_password="$(cat /run/secrets/mongo_password_service)"
 
-MONGO_USER="$(cat /run/secrets/mongo_user_service)"
-MONGO_PASSWORD="$(cat /run/secrets/mongo_password_service)"
+: "${mongo_user:?mongo_user_service is empty}"
+: "${mongo_password:?mongo_password_service is empty}"
+
+timestamp="$(date +%F_%H-%M-%S)" && readonly timestamp
+output_dir="/tmp/mongo_$timestamp"
+archive_path="/tmp/mongodb_$timestamp.tgz"
+log_file="/tmp/mongodump_$(date +%F).log"
 
 log() {
   local log_level="$1"
   local message="$2"
   local script_name
-  script_name="$(basename "$0")"
   local timestamp
-  timestamp=$(date +%F_%H-%M-%S)
-  echo "$timestamp [$log_level] [$script_name] $message" | tee -a "$LOG_FILE"
-}
 
-[[ -f /run/secrets/mongo_user_service ]] || {
-  log "ERROR" "Missing mongo_user_service secret"
-  exit 1
-}
-[[ -f /run/secrets/mongo_password_service ]] || {
-  log "ERROR" "Missing mongo_password_service secret"
-  exit 1
-}
-[[ -z "${MONGO_PROTOCOL:-}" ]] && {
-  log "ERROR" "MONGO_PROTOCOL not set"
-  exit 1
-}
-[[ -z "${MONGO_LOCAL_PORT:-}" ]] && {
-  log "ERROR" "MONGO_LOCAL_PORT not set"
-  exit 1
+  script_name="$(basename "$0")"
+  timestamp=$(date +%F_%H-%M-%S)
+
+  echo "$timestamp [$log_level] [$script_name] $message" | tee -a "$log_file"
 }
 
 log "INFO" "[$(date)] Starting MongoDB dump..."
 
-# Create output dir
-mkdir -p "$OUTPUT_DIR"
+# create output dir
+if ! mkdir -p "$output_dir"; then
+  log "ERROR" "could not create directory path: ${output_dir}"
+  exit 1
+fi
 
-# Export MongoDB as BSON
+# export MongoDB as BSON
 if mongodump \
   --host="$MONGO_PROTOCOL" \
   --port="$MONGO_LOCAL_PORT" \
   --authenticationDatabase=admin \
-  --username="$MONGO_USER" \
-  --password="$MONGO_PASSWORD" \
-  --out="$OUTPUT_DIR" \
-  --quiet >> "$LOG_FILE" 2>&1; then
+  --username="$mongo_user" \
+  --password="$mongo_password" \
+  --out="$output_dir" \
+  --quiet >> "$log_file" 2>&1; then
   log "INFO" "MongoDump succeeded"
 else
   log "ERROR" "MongoDump failed"
   exit 1
 fi
 
-# Compress output to .tgz
-if tar czf "$ARCHIVE_PATH" -C "$OUTPUT_DIR" .; then
+# compress output to .tgz
+if tar czf "$archive_path" -C "$output_dir" .; then
   log "INFO" "Compression succeeded"
 else
   log "ERROR" "Compression failed"
@@ -95,7 +88,7 @@ fi
 
 log "INFO" "[$(date)] MongoDB dump and compression complete."
 
-# Echo the archive path so the caller can capture it
-echo "$ARCHIVE_PATH"
+# echo the archive path so the caller can capture it
+echo "$archive_path"
 
 exit 0

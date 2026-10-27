@@ -1,15 +1,5 @@
-# shellcheck disable=SC2148
-echo "Running MegaLinter on staged files..."
+#!/bin/sh
 
-STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | tr '\n' ',' | sed 's/,$//')
-
-if [ -z "$STAGED_FILES" ]; then
-  echo "No staged files to lint."
-  exit 0
-fi
-
-docker run --rm \
-  -v "$(pwd)":/tmp/lint \
-  -e MEGALINTER_FILES_TO_LINT="$STAGED_FILES" \
-  -e MEGALINTER_CONFIG=.mega-linter.local.yaml \
-  oxsecurity/megalinter:v8
+echo "[HUSKY: PRE-COMMIT] Running Lint-Staged on staged files..."
+pnpm exec lint-staged
+echo "[HUSKY: PRE-COMMIT] Linting successful"
